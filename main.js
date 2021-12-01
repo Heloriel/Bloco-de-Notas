@@ -3,9 +3,10 @@ const { app, BrowserWindow, Menu, webContents, dialog, ipcMain, ipcRenderer } = 
 const fs = require('fs');
 const path = require('path');
 const { basename } = require('path');
+const selection = '';
 
 const isMac = process.platform === 'darwin';
-const isDev = false;
+const isDev = true;
 
 var file = {};
 var window = null;
@@ -82,7 +83,28 @@ const menuTemplate = [
             { type: 'separator' },
             { label: 'Copiar', role: 'copy' },
             { label: 'Colar', role: 'paste' },
-            { label: 'Recortar', role: 'cut' }
+            { label: 'Recortar', role: 'cut' },
+            { type: 'separator' },
+            { role: 'selectAll' },
+            { type: 'separator' },
+            { role: 'delete' }            
+        ]
+    },
+    {
+        label: 'Transformar',
+        submenu: [
+            {
+                label: 'MAIÚSCULO',
+                click(){
+                    convertToUpper();
+                }
+            },
+            {
+                label: 'minúsculo',
+                click(){
+                    convertToLower();
+                }
+            }
         ]
     },
     ...(isDev ? 
@@ -199,6 +221,15 @@ async function saveFileAs(){
     writeFile(dialogFile.filePath);
 
 };
+
+//#region TRANSFORM TEXT OPTIONS
+function convertToUpper(){
+    window.webContents.send('convert-toupper');
+}
+
+function convertToLower(){
+    window.webContents.send('convert-tolower');
+}
 
 //#region APP START
 app.on('ready', () => {

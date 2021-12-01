@@ -8,6 +8,14 @@ ipcRenderer.on('set-file', function(event, data){
     title.innerHTML = data.name + ' | Topaz Notepad Extended';
 });
 
+ipcRenderer.on('convert-toupper', function(){
+    textArea.value = textArea.value.toUpperCase();
+});
+
+ipcRenderer.on('convert-tolower', function(){
+    textArea.value = textArea.value.toLowerCase();
+});
+
 function textChangeHandler(){
     ipcRenderer.send('update-content', textArea.value);
 }
