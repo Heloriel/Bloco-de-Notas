@@ -1,31 +1,53 @@
+//#region SETUP VARS
 const { app, BrowserWindow, Menu, webContents, dialog, ipcMain, ipcRenderer } = require('electron');
 const fs = require('fs');
-const { basename } = require('path');
 const path = require('path');
+const { basename } = require('path');
+
 const isMac = process.platform === 'darwin';
-const isDev = true;
+const isDev = false;
 
-var mainWindow;
 var file = {};
-
+var window = null;
 
 //#region CREATE THE MENU TEMPLATE
 const menuTemplate = [
+    ...(isMac ? [{
+        label: app.name,
+        submenu: [
+          { role: 'about' },
+          { type: 'separator' },
+          { role: 'services' },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideOthers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' }
+        ]
+      }] : []),
     {
         label: 'Arquivo',
         submenu: [
+            {
+                label: 'Novo',
+                accelerator: 'CmdOrCtrl+N',
+                click(){
+                    createNewFile(window);
+                }
+            },
+            {
+                label: 'Nova Janela',
+                accelerator: 'CmdOrCtrl+Alt+N',
+                click(){
+                    createWindow();
+                }
+            },
             {
                 label: 'Abrir',
                 accelerator: 'CmdOrCtrl+O',
                 click(){
                     openFile();
-                }
-            },
-            {
-                label: 'Novo',
-                accelerator: 'CmdOrCtrl+N',
-                click(){
-                    createNewFile();
                 }
             },
             {
@@ -37,16 +59,10 @@ const menuTemplate = [
             },
             {
                 label: 'Salvar Como...',
-                accelerator: 'CmdOrCtrl+Shift+S',
+                accelerator: 'CmdOrCtrl+Alt+S',
                 click(){
                     saveFileAs();
                 }
-            },
-            {
-                label: 'Dev Tools',
-                role: 'toggledevtools',
-                enabled: isDev,
-                visible: isDev
             },                
             {
                 type: 'separator'
@@ -59,11 +75,29 @@ const menuTemplate = [
         ]
     },
     {
-        label: 'Editar'
+        label: 'Editar',
+        submenu: [
+            { label: 'Desfazer', role: 'undo' },
+            { label: 'Refazer', role: 'redo' },
+            { type: 'separator' },
+            { label: 'Copiar', role: 'copy' },
+            { label: 'Colar', role: 'paste' },
+            { label: 'Recortar', role: 'cut' }
+        ]
     },
-    {
-        label: 'Seleção'
-    }
+    ...(isDev ? 
+    [{
+        label: 'Dev',
+        submenu: [
+            {
+                label: 'Dev Tools',
+                role: 'toggledevtools',
+                enabled: isDev,
+                visible: isDev
+            },
+        ]
+    }] : []
+    )
 ];        
 
 const menu = Menu.buildFromTemplate(menuTemplate);        
@@ -71,26 +105,26 @@ Menu.setApplicationMenu(menu);
 
 //#region CREATE THE MAIN WINDOW
 async function createWindow(){
-    mainWindow = new BrowserWindow({
+    window = new BrowserWindow({
         width: 800,
         height: 600,
+        title: "Topaz Notepad Extended",
         webPreferences:{
             nodeIntegration: true,
             contextIsolation: false
         }
     });
     
-    await mainWindow.loadFile(`${__dirname}/src/index.html`);
+    await window.loadFile(`${__dirname}/src/index.html`);
 
-    createNewFile();
+    createNewFile(window);
 
     ipcMain.on('update-content', function(event, data){
         file.content = data;
     });
-
-    // mainWindow.webContents.openDevTools();
 };
 
+//#region READ THE SLECTED FILE
 function readFile(filePath){
     try {
         return fs.readFileSync(filePath, 'utf-8');
@@ -100,6 +134,7 @@ function readFile(filePath){
     }
 }
 
+//#region OPEN SELECTED FILE
 async function openFile(){
     let dialogFile = await dialog.showOpenDialog({
         defaultPath: file.path        
@@ -114,27 +149,29 @@ async function openFile(){
         path: dialogFile.filePaths[0]
     }
 
-    mainWindow.webContents.send('set-file', file);
+    window.webContents.send('set-file', file);
 }
 
-function createNewFile(){
+//#region CREATE A NEW FILE
+function createNewFile(window){
     file = {
         name: "Novo Arquivo.txt",
         content: '',
         saved: false,        
         path: app.getPath('documents') + "/Novo Arquivo.txt"
     };
-    mainWindow.webContents.send('set-file', file);
+    window.webContents.send('set-file', file);
 };
 
+//#region SAVE THE NEW FILE
 function writeFile(filePath){
     try {
         fs.writeFile(filePath, file.content, function(error){
-            if(error) throw error;
             file.path = filePath;
             file.saved = true;
             file.name = path.basename(filePath);
-            mainWindow.webContents.send('set-file', file);
+            window.webContents.send('set-file', file);
+            if(error) throw error;
         });
     } catch (e) {
         console.log(e);
@@ -158,10 +195,12 @@ async function saveFileAs(){
         return false;
     }
 
+    console.log(dialogFile.filePath);
     writeFile(dialogFile.filePath);
 
 };
 
+//#region APP START
 app.on('ready', () => {
     createWindow();
 });

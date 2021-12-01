@@ -5,7 +5,7 @@ const title    = document.getElementById('title');
 
 ipcRenderer.on('set-file', function(event, data){
     textArea.value = data.content;
-    title.innerHTML = data.name + ' | Topaz Notepad';
+    title.innerHTML = data.name + ' | Topaz Notepad Extended';
 });
 
 function textChangeHandler(){
