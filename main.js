@@ -1,9 +1,13 @@
-const { app, BrowserWindow, Menu, webContents, dialog, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, webContents, dialog, ipcMain, ipcRenderer } = require('electron');
 const fs = require('fs');
+const { basename } = require('path');
 const path = require('path');
+const isMac = process.platform === 'darwin';
+const isDev = true;
 
-var mainWindow = null;
+var mainWindow;
 var file = {};
+
 
 //#region CREATE THE MENU TEMPLATE
 const menuTemplate = [
@@ -11,23 +15,46 @@ const menuTemplate = [
         label: 'Arquivo',
         submenu: [
             {
+                label: 'Abrir',
+                accelerator: 'CmdOrCtrl+O',
+                click(){
+                    openFile();
+                }
+            },
+            {
                 label: 'Novo',
+                accelerator: 'CmdOrCtrl+N',
                 click(){
                     createNewFile();
                 }
             },
             {
-                label: 'Salvar'
+                label: 'Salvar',
+                accelerator: 'CmdOrCtrl+S',
+                click(){
+                    saveFile();
+                }
             },
             {
                 label: 'Salvar Como...',
+                accelerator: 'CmdOrCtrl+Shift+S',
                 click(){
                     saveFileAs();
                 }
             },
             {
+                label: 'Dev Tools',
+                role: 'toggledevtools',
+                enabled: isDev,
+                visible: isDev
+            },                
+            {
+                type: 'separator'
+            },
+            {
                 label: 'Sair',
-                role: 'quit'
+                role:  isMac ? 'close' : 'quit',
+                accelerator: 'CmdOrCtrl+Shift+Q'
             }
         ]
     },
@@ -36,14 +63,6 @@ const menuTemplate = [
     },
     {
         label: 'Seleção'
-    },
-    {
-        label: 'Desenvolvedor',
-        submenu: [
-            {
-                label: 'Dev Tools'
-            }
-        ]
     }
 ];        
 
@@ -72,6 +91,32 @@ async function createWindow(){
     // mainWindow.webContents.openDevTools();
 };
 
+function readFile(filePath){
+    try {
+        return fs.readFileSync(filePath, 'utf-8');
+    } catch (e) {
+        console.log(e);
+        return '';
+    }
+}
+
+async function openFile(){
+    let dialogFile = await dialog.showOpenDialog({
+        defaultPath: file.path        
+    });
+
+    if(dialogFile.canceled) return false;
+
+    file = {
+        name: path.basename(dialogFile.filePaths[0]),
+        content: readFile(dialogFile.filePaths[0]),
+        saved: true,
+        path: dialogFile.filePaths[0]
+    }
+
+    mainWindow.webContents.send('set-file', file);
+}
+
 function createNewFile(){
     file = {
         name: "Novo Arquivo.txt",
@@ -95,6 +140,14 @@ function writeFile(filePath){
         console.log(e);
     };
 };
+
+function saveFile(){
+    if(file.saved){
+        writeFile(file.path);
+    }else{
+        saveFileAs();
+    }
+}
 
 async function saveFileAs(){
     let dialogFile = await dialog.showSaveDialog({
