@@ -1,15 +1,15 @@
 //#region SETUP VARS
-const { app, BrowserWindow, Menu, webContents, dialog, ipcMain, ipcRenderer } = require('electron');
+const { app, BrowserWindow, Menu, webContents, dialog, ipcMain, ipcRenderer, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { basename } = require('path');
-const selection = '';
 
 const isMac = process.platform === 'darwin';
 const isDev = true;
 
 var file = {};
 var window = null;
+//#endregion
 
 //#region CREATE THE MENU TEMPLATE
 const menuTemplate = [
@@ -96,15 +96,26 @@ const menuTemplate = [
             {
                 label: 'MAIÚSCULO',
                 click(){
-                    convertToUpper();
+                    convertTo("uppercase");
                 }
             },
             {
                 label: 'minúsculo',
                 click(){
-                    convertToLower();
+                    convertTo("lowercase");
                 }
             }
+        ]
+    },
+    {
+        label: 'Seleção',
+        submenu: [
+            {label: 'Pesquisar no google...',
+            accelerator: 'CmdOrCtrl+Alt+G',
+            click(){
+                window.webContents.send('google-search');
+            }
+        }
         ]
     },
     ...(isDev ? 
@@ -124,6 +135,7 @@ const menuTemplate = [
 
 const menu = Menu.buildFromTemplate(menuTemplate);        
 Menu.setApplicationMenu(menu);
+//#endregion
 
 //#region CREATE THE MAIN WINDOW
 async function createWindow(){
@@ -145,6 +157,7 @@ async function createWindow(){
         file.content = data;
     });
 };
+//#endregion
 
 //#region READ THE SLECTED FILE
 function readFile(filePath){
@@ -155,6 +168,7 @@ function readFile(filePath){
         return '';
     }
 }
+//#endregion
 
 //#region OPEN SELECTED FILE
 async function openFile(){
@@ -173,6 +187,7 @@ async function openFile(){
 
     window.webContents.send('set-file', file);
 }
+//#endregion
 
 //#region CREATE A NEW FILE
 function createNewFile(window){
@@ -184,6 +199,7 @@ function createNewFile(window){
     };
     window.webContents.send('set-file', file);
 };
+//#endregion
 
 //#region SAVE THE NEW FILE
 function writeFile(filePath){
@@ -221,17 +237,23 @@ async function saveFileAs(){
     writeFile(dialogFile.filePath);
 
 };
+//#endregion
 
 //#region TRANSFORM TEXT OPTIONS
-function convertToUpper(){
-    window.webContents.send('convert-toupper');
+function convertTo(type){
+    window.webContents.send('convert-to', type);
 }
 
-function convertToLower(){
-    window.webContents.send('convert-tolower');
-}
+//#endregion
+
+//#region GOOGLE SEARCH
+ipcMain.on('google-search', function(event, data){
+    shell.openExternal("https://www.google.com/search?q=" + data);
+});
+//#endregion
 
 //#region APP START
 app.on('ready', () => {
     createWindow();
 });
+//#endregion
