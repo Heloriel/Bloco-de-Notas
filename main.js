@@ -5,7 +5,7 @@ const path = require('path');
 const { basename } = require('path');
 
 const isMac = process.platform === 'darwin';
-const isDev = true;
+const isDev = false;
 
 var file = {};
 var window = null;
@@ -70,8 +70,10 @@ const menuTemplate = [
             },
             {
                 label: 'Sair',
-                role:  isMac ? 'close' : 'quit',
-                accelerator: 'CmdOrCtrl+Shift+Q'
+                accelerator: 'CmdOrCtrl+Shift+Q',
+                click(){
+                    app.quit();
+                }
             }
         ]
     },
@@ -110,10 +112,11 @@ const menuTemplate = [
     {
         label: 'Seleção',
         submenu: [
-            {label: 'Pesquisar no google...',
-            accelerator: 'CmdOrCtrl+Alt+G',
-            click(){
-                window.webContents.send('google-search');
+            {
+                label: 'Pesquisar no google...',
+                accelerator: 'CmdOrCtrl+Alt+G',
+                click(){
+                    window.webContents.send('google-search');
             }
         }
         ]
@@ -130,7 +133,26 @@ const menuTemplate = [
             },
         ]
     }] : []
-    )
+    ),
+    {
+        label: '...',
+        submenu: [
+            {
+                label: 'Sobre',
+                accelerator: 'CmdOrCtrl+Alt+A',
+                click(){
+                    
+                }
+            },
+            {
+                label: 'Repositório GitHub',
+                accelerator: 'CmdOrCtrl+Alt+H',
+                click(){
+                    shell.openExternal("https://github.com/Heloriel/topaz-notepad-extended");
+                }
+            }            
+        ]
+    }
 ];        
 
 const menu = Menu.buildFromTemplate(menuTemplate);        
