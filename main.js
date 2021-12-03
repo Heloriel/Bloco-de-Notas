@@ -89,20 +89,20 @@ const menuTemplate = [
             { type: 'separator' },
             { role: 'selectAll' },
             { type: 'separator' },
-            { role: 'delete' }            
+            { role: 'delete', accelerator: 'Delete' }            
         ]
     },
     {
         label: 'Transformar',
         submenu: [
             {
-                label: 'MAIÚSCULO',
+                label: 'Maiúsculo',
                 click(){
                     convertTo("uppercase");
                 }
             },
             {
-                label: 'minúsculo',
+                label: 'Minúsculo',
                 click(){
                     convertTo("lowercase");
                 }
@@ -119,12 +119,21 @@ const menuTemplate = [
         label: 'Seleção',
         submenu: [
             {
-                label: 'Pesquisar no google...',
+                label: 'Pesquisar no Google',
                 accelerator: 'CmdOrCtrl+Alt+G',
                 click(){
                     window.webContents.send('google-search');
             }
         }
+        ]
+    },
+    {
+        label: 'Configurações',
+        submenu: [
+            {
+                label: 'Modo Escuro',
+                type: 'checkbox'
+            }
         ]
     },
     ...(isDev ? 
