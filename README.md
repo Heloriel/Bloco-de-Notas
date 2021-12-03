@@ -2,10 +2,23 @@
 
  Litle project of a notepad with extra resourses and configurations.
  
- At the moment master (1.0.0) only has the basic functionalities.
- 
  Made with electron.
  
  #### Requirements:
  - NodeJS (Latest)
  - ElectronJS (Latest)
+
+ #### Logs
+
+<p>
+
+- 1.0.1 (Hotfix)
+    ##### Temporary removed the option to "Open New Window"
+</p>
+
+<p>
+
+- 1.0.0
+    ##### Initial release with basic functiolaties.
+
+</p>

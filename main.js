@@ -37,13 +37,6 @@ const menuTemplate = [
                 }
             },
             {
-                label: 'Nova Janela',
-                accelerator: 'CmdOrCtrl+Alt+N',
-                click(){
-                    createWindow();
-                }
-            },
-            {
                 label: 'Abrir',
                 accelerator: 'CmdOrCtrl+O',
                 click(){
