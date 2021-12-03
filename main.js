@@ -5,7 +5,7 @@ const path = require('path');
 const { basename } = require('path');
 
 const isMac = process.platform === 'darwin';
-const isDev = false;
+const isDev = true;
 
 var file = {};
 var window = null;
@@ -105,6 +105,12 @@ const menuTemplate = [
                 label: 'minúsculo',
                 click(){
                     convertTo("lowercase");
+                }
+            },
+            {
+                label: 'Inverter Texto',
+                click(){
+                    convertTo("inverse");
                 }
             }
         ]

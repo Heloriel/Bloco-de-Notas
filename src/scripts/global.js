@@ -14,6 +14,9 @@ ipcRenderer.on('convert-to', function(event, data, error){
             textArea.value = textArea.value.toUpperCase();
         }else if(data === "lowercase"){
             textArea.value = textArea.value.toLowerCase();
+        }else if(data == "inverse") {
+            let str = textArea.value;
+            textArea.value =  str.split("").reverse().join("");
         }else{
             throw error;
         }
@@ -21,14 +24,6 @@ ipcRenderer.on('convert-to', function(event, data, error){
         console.log(e);
     }
 });
-
-// ipcRenderer.on('convert-toupper', function(){
-//     textArea.value = textArea.value.toUpperCase();
-// });
-
-// ipcRenderer.on('convert-tolower', function(){
-//     textArea.value = textArea.value.toLowerCase();
-// });
 
 function textChangeHandler(){
     ipcRenderer.send('update-content', textArea.value);
