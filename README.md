@@ -1,6 +1,10 @@
 # Topaz - Notepad Extended
 
- Litle project to make an extended version of the default windows notepad with extra resourses and configurations made with electron.
+ Litle project of a notepad with extra resourses and configurations.
+ 
+ At the moment master (1.0.0) only has the basic functionalities.
+ 
+ Made with electron.
  
  #### Requirements:
  - NodeJS (Latest)
