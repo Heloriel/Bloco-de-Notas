@@ -26,10 +26,18 @@ main{
     border: 0;
     resize: none;
     padding: 1rem;
-    background: #ffffff;
-    color: #000000;
 }
 
 #text:focus{
     outline: none;
+}
+
+.light-mode{
+    background: #ffffff;
+    color: #000000;
+}
+
+.dark-mode{
+    background: #292929;
+    color: #ffffff;
 }

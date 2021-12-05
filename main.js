@@ -1,5 +1,8 @@
 //#region SETUP VARS
-const { app, BrowserWindow, Menu, webContents, dialog, ipcMain, ipcRenderer } = require('electron');
+const { app, BrowserWindow, Menu, webContents, dialog, ipcMain, ipcRenderer, shell } = require('electron');
+const Store = require('electron-store');
+const DB = new Store();
+const { MenuItem } = require('electron/main');
 const fs = require('fs');
 const path = require('path');
 const { basename } = require('path');
@@ -9,6 +12,7 @@ const isDev = false;
 
 var file = {};
 var window = null;
+//#endregion
 
 //#region CREATE THE MENU TEMPLATE
 const menuTemplate = [
@@ -27,31 +31,38 @@ const menuTemplate = [
         ]
       }] : []),
     {
-        label: 'Arquivo',
+        label: 'File',
         submenu: [
             {
-                label: 'Novo',
+                label: 'New',
                 accelerator: 'CmdOrCtrl+N',
                 click(){
                     createNewFile(window);
                 }
             },
+            // {
+            //     label: 'Nova Janela',
+            //     accelerator: 'CmdOrCtrl+Alt+N',
+            //     click(){
+            //         createWindow();
+            //     }
+            // },
             {
-                label: 'Abrir',
+                label: 'Open',
                 accelerator: 'CmdOrCtrl+O',
                 click(){
                     openFile();
                 }
             },
             {
-                label: 'Salvar',
+                label: 'Save',
                 accelerator: 'CmdOrCtrl+S',
                 click(){
                     saveFile();
                 }
             },
             {
-                label: 'Salvar Como...',
+                label: 'Save as...',
                 accelerator: 'CmdOrCtrl+Alt+S',
                 click(){
                     saveFileAs();
@@ -61,26 +72,83 @@ const menuTemplate = [
                 type: 'separator'
             },
             {
-                label: 'Sair',
-                role:  isMac ? 'close' : 'quit',
-                accelerator: 'CmdOrCtrl+Shift+Q'
+                label: 'Exit APP',
+                accelerator: 'CmdOrCtrl+Shift+Q',
+                click(){
+                    app.quit();
+                }
             }
         ]
     },
     {
-        label: 'Editar',
+        label: 'Edit',
         submenu: [
-            { label: 'Desfazer', role: 'undo' },
-            { label: 'Refazer', role: 'redo' },
+            { label: 'Undo', role: 'undo' },
+            { label: 'Redo', role: 'redo' },
             { type: 'separator' },
-            { label: 'Copiar', role: 'copy' },
-            { label: 'Colar', role: 'paste' },
-            { label: 'Recortar', role: 'cut' }
+            { label: 'Copy', role: 'copy' },
+            { label: 'Paste', role: 'paste' },
+            { label: 'Cut', role: 'cut' },
+            { type: 'separator' },
+            { label:'Select All', role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
+            { type: 'separator' },
+            { label: 'Delete', role: 'delete', accelerator: 'Delete' }            
+        ]
+    },
+    {
+        label: 'Transform',
+        submenu: [
+            {
+                label: 'Uppercase',
+                accelerator: 'CmdOrCtrl+Alt+U',
+                click(){
+                    convertTo("uppercase");
+                }
+            },
+            {
+                label: 'Lowercase',
+                accelerator: 'CmdOrCtrl+Alt+L',
+                click(){
+                    convertTo("lowercase");
+                }
+            },
+            {
+                label: 'Invert',
+                accelerator: 'CmdOrCtrl+Alt+I',
+                click(){
+                    convertTo("inverse");
+                }
+            }
+        ]
+    },
+    {
+        label: 'Selection',
+        submenu: [
+            {
+                label: 'Google Search',
+                accelerator: 'CmdOrCtrl+Alt+G',
+                click(){
+                    window.webContents.send('google-search');
+            }
+        }
+        ]
+    },
+    {
+        label: 'Config',
+        submenu: [
+            {
+                id: "dm",
+                label: 'Dark Mode',
+                type: 'checkbox',
+                click(){
+                    changeColorMode();
+                }
+            }
         ]
     },
     ...(isDev ? 
     [{
-        label: 'Dev',
+        label: 'Developer',
         submenu: [
             {
                 label: 'Dev Tools',
@@ -90,17 +158,32 @@ const menuTemplate = [
             },
         ]
     }] : []
-    )
+    ),
+    {
+        label: 'About',
+        submenu: [
+            {
+                label: 'GitHub Repo',
+                accelerator: 'CmdOrCtrl+Alt+H',
+                click(){
+                    shell.openExternal("https://github.com/Heloriel/topaz-notepad-extended");
+                }
+            }            
+        ]
+    }
 ];        
 
 const menu = Menu.buildFromTemplate(menuTemplate);        
 Menu.setApplicationMenu(menu);
+//#endregion
 
 //#region CREATE THE MAIN WINDOW
 async function createWindow(){
     window = new BrowserWindow({
         width: 800,
         height: 600,
+        minWidth: 400,
+        minHeight: 200,
         title: "Topaz Notepad Extended",
         webPreferences:{
             nodeIntegration: true,
@@ -110,12 +193,22 @@ async function createWindow(){
     
     await window.loadFile(`${__dirname}/src/index.html`);
 
+    if(!DB.has('darkmode')){
+        DB.set('darkmode', false);
+    }
+    if(DB.get('darkmode')){
+        let darkMode = menu.getMenuItemById('dm');
+        darkMode.checked = true;
+    }
+    window.webContents.send('toggle-colormode', DB.get('darkmode'));
+
     createNewFile(window);
 
     ipcMain.on('update-content', function(event, data){
         file.content = data;
     });
 };
+//#endregion
 
 //#region READ THE SLECTED FILE
 function readFile(filePath){
@@ -126,6 +219,7 @@ function readFile(filePath){
         return '';
     }
 }
+//#endregion
 
 //#region OPEN SELECTED FILE
 async function openFile(){
@@ -144,6 +238,7 @@ async function openFile(){
 
     window.webContents.send('set-file', file);
 }
+//#endregion
 
 //#region CREATE A NEW FILE
 function createNewFile(window){
@@ -155,6 +250,7 @@ function createNewFile(window){
     };
     window.webContents.send('set-file', file);
 };
+//#endregion
 
 //#region SAVE THE NEW FILE
 function writeFile(filePath){
@@ -192,8 +288,36 @@ async function saveFileAs(){
     writeFile(dialogFile.filePath);
 
 };
+//#endregion
+
+//#region TRANSFORM TEXT OPTIONS
+function convertTo(type){
+    window.webContents.send('convert-to', type);
+}
+
+//#endregion
+
+//#region GOOGLE SEARCH
+ipcMain.on('google-search', function(event, data){
+    shell.openExternal("https://www.google.com/search?q=" + data);
+});
+//#endregion
+
+//#region
+function changeColorMode(){
+    if(DB.get('darkmode')){
+        DB.set('darkmode', false);
+        console.log(DB.get('darkmode'));
+    }else{
+        DB.set('darkmode', true);
+        console.log(DB.get('darkmode'));
+    }
+    window.webContents.send('toggle-colormode', DB.get('darkmode'));
+}
+//#endregion
 
 //#region APP START
 app.on('ready', () => {
     createWindow();
 });
+//#endregion
