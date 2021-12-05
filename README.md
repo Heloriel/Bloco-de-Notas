@@ -17,6 +17,14 @@ I have not included node modules in the repository, if you wish to fork you need
 
 <p>
 
+- #### 1.1.1 (Hotfix)
+    - ###### Add icon to project
+    - ###### Fixed new file default filename.  
+    
+</p>
+
+<p>
+
 - #### 1.1.0
     - ###### Dark Mode
     - ###### Google Search (Selection)
