@@ -185,6 +185,7 @@ async function createWindow(){
         minWidth: 400,
         minHeight: 200,
         title: "Topaz Notepad Extended",
+        icon: "./src/images/Logo.ico",
         webPreferences:{
             nodeIntegration: true,
             contextIsolation: false
@@ -243,10 +244,10 @@ async function openFile(){
 //#region CREATE A NEW FILE
 function createNewFile(window){
     file = {
-        name: "Novo Arquivo.txt",
+        name: "New File.txt",
         content: '',
         saved: false,        
-        path: app.getPath('documents') + "/Novo Arquivo.txt"
+        path: app.getPath('documents') + "/New File.txt"
     };
     window.webContents.send('set-file', file);
 };
