@@ -1,11 +1,14 @@
 //#region SETUP VARS
 const { app, BrowserWindow, Menu, webContents, dialog, ipcMain, ipcRenderer, shell } = require('electron');
+const Store = require('electron-store');
+const DB = new Store();
+const { MenuItem } = require('electron/main');
 const fs = require('fs');
 const path = require('path');
 const { basename } = require('path');
 
 const isMac = process.platform === 'darwin';
-const isDev = true;
+const isDev = false;
 
 var file = {};
 var window = null;
@@ -28,38 +31,38 @@ const menuTemplate = [
         ]
       }] : []),
     {
-        label: 'Arquivo',
+        label: 'File',
         submenu: [
             {
-                label: 'Novo',
+                label: 'New',
                 accelerator: 'CmdOrCtrl+N',
                 click(){
                     createNewFile(window);
                 }
             },
+            // {
+            //     label: 'Nova Janela',
+            //     accelerator: 'CmdOrCtrl+Alt+N',
+            //     click(){
+            //         createWindow();
+            //     }
+            // },
             {
-                label: 'Nova Janela',
-                accelerator: 'CmdOrCtrl+Alt+N',
-                click(){
-                    createWindow();
-                }
-            },
-            {
-                label: 'Abrir',
+                label: 'Open',
                 accelerator: 'CmdOrCtrl+O',
                 click(){
                     openFile();
                 }
             },
             {
-                label: 'Salvar',
+                label: 'Save',
                 accelerator: 'CmdOrCtrl+S',
                 click(){
                     saveFile();
                 }
             },
             {
-                label: 'Salvar Como...',
+                label: 'Save as...',
                 accelerator: 'CmdOrCtrl+Alt+S',
                 click(){
                     saveFileAs();
@@ -69,7 +72,7 @@ const menuTemplate = [
                 type: 'separator'
             },
             {
-                label: 'Sair',
+                label: 'Exit APP',
                 accelerator: 'CmdOrCtrl+Shift+Q',
                 click(){
                     app.quit();
@@ -78,37 +81,40 @@ const menuTemplate = [
         ]
     },
     {
-        label: 'Editar',
+        label: 'Edit',
         submenu: [
-            { label: 'Desfazer', role: 'undo' },
-            { label: 'Refazer', role: 'redo' },
+            { label: 'Undo', role: 'undo' },
+            { label: 'Redo', role: 'redo' },
             { type: 'separator' },
-            { label: 'Copiar', role: 'copy' },
-            { label: 'Colar', role: 'paste' },
-            { label: 'Recortar', role: 'cut' },
+            { label: 'Copy', role: 'copy' },
+            { label: 'Paste', role: 'paste' },
+            { label: 'Cut', role: 'cut' },
             { type: 'separator' },
-            { role: 'selectAll' },
+            { label:'Select All', role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
             { type: 'separator' },
-            { role: 'delete', accelerator: 'Delete' }            
+            { label: 'Delete', role: 'delete', accelerator: 'Delete' }            
         ]
     },
     {
-        label: 'Transformar',
+        label: 'Transform',
         submenu: [
             {
-                label: 'Maiúsculo',
+                label: 'Uppercase',
+                accelerator: 'CmdOrCtrl+Alt+U',
                 click(){
                     convertTo("uppercase");
                 }
             },
             {
-                label: 'Minúsculo',
+                label: 'Lowercase',
+                accelerator: 'CmdOrCtrl+Alt+L',
                 click(){
                     convertTo("lowercase");
                 }
             },
             {
-                label: 'Inverter Texto',
+                label: 'Invert',
+                accelerator: 'CmdOrCtrl+Alt+I',
                 click(){
                     convertTo("inverse");
                 }
@@ -116,10 +122,10 @@ const menuTemplate = [
         ]
     },
     {
-        label: 'Seleção',
+        label: 'Selection',
         submenu: [
             {
-                label: 'Pesquisar no Google',
+                label: 'Google Search',
                 accelerator: 'CmdOrCtrl+Alt+G',
                 click(){
                     window.webContents.send('google-search');
@@ -128,17 +134,21 @@ const menuTemplate = [
         ]
     },
     {
-        label: 'Configurações',
+        label: 'Config',
         submenu: [
             {
-                label: 'Modo Escuro',
-                type: 'checkbox'
+                id: "dm",
+                label: 'Dark Mode',
+                type: 'checkbox',
+                click(){
+                    changeColorMode();
+                }
             }
         ]
     },
     ...(isDev ? 
     [{
-        label: 'Dev',
+        label: 'Developer',
         submenu: [
             {
                 label: 'Dev Tools',
@@ -150,17 +160,10 @@ const menuTemplate = [
     }] : []
     ),
     {
-        label: '...',
+        label: 'About',
         submenu: [
             {
-                label: 'Sobre',
-                accelerator: 'CmdOrCtrl+Alt+A',
-                click(){
-                    
-                }
-            },
-            {
-                label: 'Repositório GitHub',
+                label: 'GitHub Repo',
                 accelerator: 'CmdOrCtrl+Alt+H',
                 click(){
                     shell.openExternal("https://github.com/Heloriel/topaz-notepad-extended");
@@ -179,6 +182,8 @@ async function createWindow(){
     window = new BrowserWindow({
         width: 800,
         height: 600,
+        minWidth: 400,
+        minHeight: 200,
         title: "Topaz Notepad Extended",
         webPreferences:{
             nodeIntegration: true,
@@ -187,6 +192,15 @@ async function createWindow(){
     });
     
     await window.loadFile(`${__dirname}/src/index.html`);
+
+    if(!DB.has('darkmode')){
+        DB.set('darkmode', false);
+    }
+    if(DB.get('darkmode')){
+        let darkMode = menu.getMenuItemById('dm');
+        darkMode.checked = true;
+    }
+    window.webContents.send('toggle-colormode', DB.get('darkmode'));
 
     createNewFile(window);
 
@@ -287,6 +301,19 @@ function convertTo(type){
 ipcMain.on('google-search', function(event, data){
     shell.openExternal("https://www.google.com/search?q=" + data);
 });
+//#endregion
+
+//#region
+function changeColorMode(){
+    if(DB.get('darkmode')){
+        DB.set('darkmode', false);
+        console.log(DB.get('darkmode'));
+    }else{
+        DB.set('darkmode', true);
+        console.log(DB.get('darkmode'));
+    }
+    window.webContents.send('toggle-colormode', DB.get('darkmode'));
+}
 //#endregion
 
 //#region APP START

@@ -35,3 +35,13 @@ ipcRenderer.on('google-search', function(){
     var selection = textArea.value.substring(start, finish);
     ipcRenderer.send('google-search', selection);
 });
+
+ipcRenderer.on('toggle-colormode', function(event, data){
+    if(data){
+        textArea.classList.remove("light-mode");
+        textArea.classList.add("dark-mode");
+    }else{
+        textArea.classList.remove("dark-mode");
+        textArea.classList.add("light-mode");
+    }
+});
