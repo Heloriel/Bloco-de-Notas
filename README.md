@@ -22,3 +22,6 @@
     ##### Initial release with basic functiolaties.
 
 </p>
+
+#### Note on MAC
+- Now I have no means to test on MAC, feel free to fork and test by yourself.
