@@ -1,6 +1,6 @@
 # Topaz - Notepad Extended
 
- Litle project of a notepad with extra resourses and configurations.
+Little project of a notepad with extra functionalities and configurations.
  
  Made with electron.
  
