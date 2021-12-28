@@ -3,13 +3,6 @@
 Little project of a notepad with extra functionalities and configurations.
  
  Made with electron.
- 
- ##### Modules:
-
- - NodeJS
- - ElectronJS
- - Electron Store
- - Electron Packager (Optional)
 
  #### Logs:
 
