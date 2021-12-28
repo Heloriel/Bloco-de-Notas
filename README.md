@@ -2,16 +2,7 @@
 
 Little project of a notepad with extra functionalities and configurations.
  
- Made with electron.
- 
- ##### Requirements (To Fork):
-
-I have not included node modules in the repository, if you wish to fork you need to install the dependecies.
-
- - NodeJS
- - ElectronJS
- - Electron Store
- - Electron Packager (Optional)
+ Made with ElectronJS.
 
  #### Logs:
 
