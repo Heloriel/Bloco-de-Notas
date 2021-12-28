@@ -1,19 +1,21 @@
 {
   "name": "topaz-npe",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.2.0",
+  "description": "Simple notepad with extended utilities",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
   },
   "keywords": [],
-  "author": "",
+  "author": "heloriel <andradematheus.dev@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "electron": "^16.0.2",
-    "electron-store": "^8.0.1"
+    "electron": "^16.0.5",
+    "electron-store": "^8.0.1",
+    "sass": "^1.45.1"
   },
   "devDependencies": {
     "electron-packager": "^15.4.0"
-  }
+  },
+  "repository": "https://github.com/Heloriel/topaz-notepad-extended.git"
 }
