@@ -1,6 +1,7 @@
 const { ipcRenderer } = require("electron");
 
 const textArea = document.getElementById("text");
+const lineCounter = document.getElementById("line-count");
 const title = document.getElementById("title");
 const head = document.head || document.getElementsByTagName("head")[0];
 const style = document.createElement("style");
@@ -37,9 +38,12 @@ function textChangeHandler() {
 }
 
 ipcRenderer.on("google-search", function () {
-	var start = textArea.selectionStart;
-	var finish = textArea.selectionEnd;
-	var selection = textArea.value.substring(start, finish);
+	let start = textArea.selectionStart;
+	let finish = textArea.selectionEnd;
+	let selection = textArea.value.substring(start, finish);
+	if (selection === ""){
+		selection = textArea.value;
+	}
 	ipcRenderer.send("google-search", selection);
 });
 
@@ -47,8 +51,12 @@ ipcRenderer.on("toggle-colormode", function (event, data) {
 	if (data) {
 		textArea.classList.remove("light-mode");
 		textArea.classList.add("dark-mode");
+		lineCounter.classList.remove("lc-light-mode");
+		lineCounter.classList.add("lc-dark-mode");
 	} else {
 		textArea.classList.remove("dark-mode");
 		textArea.classList.add("light-mode");
+		lineCounter.classList.remove("lc-dark-mode");
+		lineCounter.classList.add("lc-light-mode");
 	}
 });

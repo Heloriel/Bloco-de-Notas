@@ -129,6 +129,14 @@ const menuTemplate = [
 					changeColorMode();
 				},
 			},
+			{
+				id: "lc",
+				label: "Line Count",
+				type: "checkbox",
+				click() {
+					toggleLineCount();
+				},
+			},
 		],
 	},
 	...(isDev
@@ -182,7 +190,7 @@ async function createWindow() {
 	
 	await window.loadFile(`${__dirname}/src/index.html`);
 	
-	window.webContents.send("compiled_sass", compiled_sass.css);
+	await window.webContents.send("compiled_sass", compiled_sass.css);
 	
 	if (!DB.has("darkmode")) {
 		DB.set("darkmode", false);
@@ -297,10 +305,8 @@ ipcMain.on("google-search", function (event, data) {
 function changeColorMode() {
 	if (DB.get("darkmode")) {
 		DB.set("darkmode", false);
-		console.log(DB.get("darkmode"));
 	} else {
 		DB.set("darkmode", true);
-		console.log(DB.get("darkmode"));
 	}
 	window.webContents.send("toggle-colormode", DB.get("darkmode"));
 }
